@@ -8,18 +8,20 @@
 #include "error.hpp"
 
 using namespace std;
-
-
-param_ptr params;
+string file;
+string ip_address;
+int port;
+int active_timer;
+int inactive_timer;
+int count;
 
 void init() {
-    params = (param_ptr) malloc(sizeof(struct Parameters));
-    params->file = "-";
-    params->ip_address = "127.0.0.1";
-    params->port = 2555;
-    params->active_timer = 60;
-    params->inactive_timer = 10;
-    params->count = 10;
+    file = "-";
+    ip_address = "127.0.0.1";
+    port = 2555;
+    active_timer = 60;
+    inactive_timer = 120;
+    count = 20;
 }
 
 
@@ -33,31 +35,29 @@ void read_parameters(int argc, char* argv[]) {
         switch(opt)
         {
             case 'f':
-                params->file = optarg;
+                file = optarg;
                 break;
             case 'c':
                 argument = optarg;
                 if (argument.find(':') != string::npos){
                     
                 } else {
-                    params->ip_address = optarg;
+                    ip_address = optarg;
                 }
                 break;
             case 'a':
-                params->active_timer = atoi(optarg);
+                active_timer = atoi(optarg);
                 break;
             case 'i':
-                params->inactive_timer = atoi(optarg);
+                inactive_timer = atoi(optarg);
                 break;
             case 'm':
-                params->count = atoi(optarg);
+                count = atoi(optarg);
                 break;
             case ':':
-                free_params();
                 exit_with_error(Error::E_PARAMETER, "Parameter without value.");
                 break;
             case '?':
-                free_params();
                 exit_with_error(Error::E_PARAMETER, "Unknown parameter.");
                 break;
         }
@@ -65,27 +65,27 @@ void read_parameters(int argc, char* argv[]) {
 }
 
 string get_file() {
-    return params->file;
+    return file;
 }
 
 string get_address() {
-    return params->ip_address;
+    return ip_address;
 }
 
 int get_active_timer() {
-    return params->active_timer;
+    return active_timer;
 }
 
 int get_inactive_timer() {
-    return params->inactive_timer;
+    return inactive_timer;
 }
 
 int get_count() {
-    return params->count;
+    return count;
 }
 
-void free_params() {
-    free(params);
+int get_port() {
+    return port;
 }
 
 

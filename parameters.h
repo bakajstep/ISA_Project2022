@@ -7,9 +7,11 @@
 
 #include <string>
 
+using namespace std;
+
 typedef struct Parameters {
-    std::string file;
-    std::string ip_address;
+    string file;
+    string ip_address;
     int port;
     int active_timer;
     int inactive_timer;
@@ -18,9 +20,9 @@ typedef struct Parameters {
 
 void read_parameters(int argc, char* argv[]);
 
-std::string get_file();
+string get_file();
 
-std::string get_address();
+string get_address();
 
 int get_port();
 

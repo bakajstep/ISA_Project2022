@@ -9,7 +9,7 @@ PARAMETERS=parameters
 .PHONY: all clean
 
 all:
-	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(ERROR).hpp $(PARAMETERS).cpp $(PARAMETERS).h $(CFLAGS) -o main
+	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(ERROR).hpp $(PARAMETERS).cpp $(PARAMETERS).h $(CFLAGS) -lpcap -o main
 
 clean:
 	rm -f *.o main
