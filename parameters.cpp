@@ -13,15 +13,15 @@ string ip_address;
 int port;
 int active_timer;
 int inactive_timer;
-int count;
+int number_of_flows;
 
 void init() {
     file = "-";
     ip_address = "127.0.0.1";
-    port = 2555;
+    port = 2055;
     active_timer = 60;
-    inactive_timer = 120;
-    count = 20;
+    inactive_timer = 10;
+    number_of_flows = 1024;
 }
 
 
@@ -52,7 +52,7 @@ void read_parameters(int argc, char* argv[]) {
                 inactive_timer = atoi(optarg);
                 break;
             case 'm':
-                count = atoi(optarg);
+                number_of_flows = atoi(optarg);
                 break;
             case ':':
                 exit_with_error(Error::E_PARAMETER, "Parameter without value.");
@@ -81,7 +81,7 @@ int get_inactive_timer() {
 }
 
 int get_count() {
-    return count;
+    return number_of_flows;
 }
 
 int get_port() {

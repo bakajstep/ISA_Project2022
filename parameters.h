@@ -9,15 +9,6 @@
 
 using namespace std;
 
-typedef struct Parameters {
-    string file;
-    string ip_address;
-    int port;
-    int active_timer;
-    int inactive_timer;
-    int count;
-} *param_ptr;
-
 void read_parameters(int argc, char* argv[]);
 
 string get_file();

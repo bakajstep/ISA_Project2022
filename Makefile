@@ -5,11 +5,12 @@ CFLAGS=-Wall -Wextra -pedantic
 MAIN=main
 ERROR=error
 PARAMETERS=parameters
+FLOW=flows
 
 .PHONY: all clean
 
 all:
-	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(ERROR).hpp $(PARAMETERS).cpp $(PARAMETERS).h $(CFLAGS) -lpcap -o main
+	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(PARAMETERS).cpp $(FLOW).cpp $(CFLAGS) -lpcap -o main
 
 clean:
 	rm -f *.o main
