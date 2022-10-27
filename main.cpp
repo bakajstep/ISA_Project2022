@@ -5,7 +5,6 @@
 #include "parameters.h"
 #include "error.hpp"
 #include "flows.h"
-#include <iostream>
 #include <pcap/pcap.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -21,7 +20,7 @@
 #define PCAP_ERRBUF_SIZE 256
 #define SIZE_ETHERNET 14
 #define ICMP_DESTINATION_PORT(type, code) (type * 256 + code)
-#define CALCULATE_TIME(time_s, time_ns) ((time_s * 1000) + ((time_ns + 500)/1000))
+#define CALCULATE_TIME_TO_MS(time_s, time_ns) ((time_s * 1000) + ((time_ns + 500)/1000))
 
 using namespace std;
 
@@ -46,9 +45,9 @@ int main(int argc, char *argv[]) {
     // read packets from the file
     while ((packet = pcap_next(handle, &header)) != nullptr) {
         if (first_time == 0) {
-            first_time = CALCULATE_TIME(header.ts.tv_sec, header.ts.tv_usec);
+            first_time = CALCULATE_TIME_TO_MS(header.ts.tv_sec, header.ts.tv_usec);
         }
-        current_packet_time = CALCULATE_TIME(header.ts.tv_sec, header.ts.tv_usec) - first_time;
+        current_packet_time = CALCULATE_TIME_TO_MS(header.ts.tv_sec, header.ts.tv_usec) - first_time;
         check_inactive_time(current_packet_time);
         check_active_time(current_packet_time);
 
@@ -71,7 +70,7 @@ int main(int argc, char *argv[]) {
                                     ICMP_DESTINATION_PORT(my_icmp->type, my_icmp->code), my_ip->ip_p, my_ip->ip_tos,
                                     current_packet_time, 0, header.len);
                     }
-                    export_flows();
+                    export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;
                 case 6: // TCP protocol
                     my_tcp = (struct tcphdr *) (packet + SIZE_ETHERNET + size_ip); // pointer to the TCP header
@@ -85,7 +84,7 @@ int main(int argc, char *argv[]) {
                                     my_tcp->th_dport, my_ip->ip_p, my_ip->ip_tos,
                                     current_packet_time, my_tcp->th_flags, header.len);
                     }
-                    export_flows();
+                    export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;
                 case 17: // UDP protocol
                     my_udp = (struct udphdr *) (packet + SIZE_ETHERNET + size_ip); // pointer to the UDP header
@@ -98,7 +97,7 @@ int main(int argc, char *argv[]) {
                                     my_udp->uh_dport, my_ip->ip_p, my_ip->ip_tos,
                                     current_packet_time, 0, header.len);
                     }
-                    export_flows();
+                    export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;
                 default:
                     continue;
@@ -107,5 +106,6 @@ int main(int argc, char *argv[]) {
     }
     // close the capture device and deallocate resources
     pcap_close(handle);
+    export_rest(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
     return Error::E_NO_ERR;
 }

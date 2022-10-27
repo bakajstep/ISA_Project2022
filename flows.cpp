@@ -5,30 +5,33 @@
 #include <arpa/inet.h>
 #include <cstdint>
 #include <list>
+#include <cstring>
+#include <vector>
 #include "flows.h"
 #include "parameters.h"
+#include "udp_client.h"
 
 
-map<tuple<string, string, int, int, uint8_t, uint8_t>, flow> map_of_flows; // map of flows
+map<tuple<string, string, int, int, uint8_t, uint8_t>, flow_record> map_of_records; // map of flows
 int current_number_of_flows = 0; // number of flows
-list<flow> flows_to_export;
+list<flow_record> records_to_export;
 
-tuple<string, string, int, int, uint8_t, uint8_t> get_key_flow(flow flow) {
-    return make_tuple(inet_ntoa(flow.record.srcaddr), inet_ntoa(flow.record.dstaddr),
-                      flow.record.srcport, flow.record.dstport, flow.record.prot, flow.record.tos);
+tuple<string, string, int, int, uint8_t, uint8_t> get_key_flow(flow_record record) {
+    return make_tuple(inet_ntoa(record.srcaddr), inet_ntoa(record.dstaddr),
+                      record.srcport, record.dstport, record.prot, record.tos);
 }
 
 
-flow find_oldest_flow() {
-    flow oldest_flow;
+flow_record find_oldest_record() {
+    flow_record oldest_record;
     uint32_t oldest = UINT32_MAX;
-    for (const auto &pr: map_of_flows) {
-        if (oldest < pr.second.record.first) {
-            oldest = pr.second.record.first;
-            oldest_flow = pr.second;
+    for (const auto &pr: map_of_records) {
+        if (oldest < ntohl(pr.second.first)) {
+            oldest = pr.second.first;
+            oldest_record = pr.second;
         }
     }
-    return oldest_flow;
+    return oldest_record;
 }
 
 
@@ -40,85 +43,130 @@ tuple<string, string, int, int, uint8_t, uint8_t> create_key(
 void create_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key, in_addr ip_source, in_addr ip_desc,
                  uint8_t port_source, uint8_t port_desc, uint8_t protocol, uint8_t tos, uint32_t time, uint8_t tcp_flag,
                  uint32_t dOctets) {
-    flow flow;
+    flow_record record;
     if (++current_number_of_flows == get_count()) {
-        flow = find_oldest_flow();
-        key_flow tmp_key = get_key_flow(flow);
-        //export_flow();
+        record = find_oldest_record();
+        key_flow tmp_key = get_key_flow(record);
+        records_to_export.push_back(record);
         delete_flow(tmp_key);
     }
-    flow.header.version = 5;
-    flow.header.count = 1;
-    flow.header.sys_uptime = 0;     // TODO
-    flow.header.unix_secs = 0;  // TODO
-    flow.header.unix_nsecs = 0;     // TODO
-    flow.header.sampling_interval = 0;      // TODO
-    flow.header.engine_type = 0;
-    flow.header.engine_id = 0;
-    flow.header.sampling_interval = 0;
 
-    flow.record.srcaddr = ip_source;
-    flow.record.dstaddr = ip_desc;
-    flow.record.nexthop = 0;
-    flow.record.input = 0;
-    flow.record.output = 0;
-    flow.record.dPkts = 1;
-    flow.record.dOctets = dOctets;
-    flow.record.first = time * 1000;
-    flow.record.last = time * 1000;
-    flow.record.srcport = port_source;
-    flow.record.dstport = port_desc;
-    flow.record.pad1 = 0;
-    flow.record.tcp_flags = 0 | tcp_flag;
-    flow.record.prot = protocol;
-    flow.record.tos = tos;
-    flow.record.src_as = 0;
-    flow.record.dst_as = 0;
-    flow.record.src_mask = 0;
-    flow.record.dst_mask = 0;
-    flow.record.pad2 = 0;
-    map_of_flows[key] = flow;
+    record.srcaddr = ip_source;
+    record.dstaddr = ip_desc;
+    record.nexthop = 0;
+    record.input = 0;
+    record.output = 0;
+    record.dPkts = htonl(1);
+    record.dOctets = htonl(dOctets);
+    record.first = htonl(time);
+    record.last = htonl(time);
+    record.srcport = port_source;
+    record.dstport = port_desc;
+    record.pad1 = 0;
+    record.tcp_flags = 0 | tcp_flag;
+    record.prot = protocol;
+    record.tos = tos;
+    record.src_as = 0;
+    record.dst_as = 0;
+    record.src_mask = 0;
+    record.dst_mask = 0;
+    record.pad2 = 0;
+    map_of_records[key] = record;
 }
 
 void update_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key, time_t time, uint8_t tcp_flag,
                  uint32_t dOctets) {
-    flow flow = map_of_flows[key];
-    flow.record.last = time;
-    flow.record.dPkts += 1;
-    flow.record.dOctets += dOctets;
-    flow.record.tcp_flags = flow.record.tcp_flags | tcp_flag;
-    map_of_flows[key] = flow;
+    flow_record record = map_of_records[key];
+    record.last = htonl(time);
+    record.dPkts += htonl(1);
+    record.dOctets += htonl(dOctets);
+    record.tcp_flags = record.tcp_flags | tcp_flag;
+    map_of_records[key] = record;
 }
 
 bool is_exist_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key) {
-    if (map_of_flows.find(key) != map_of_flows.end()) {
+    if (map_of_records.find(key) != map_of_records.end()) {
         return true;
     }
     return false;
 }
 
 void delete_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key) {
-    map_of_flows.erase(key);
+    map_of_records.erase(key);
 }
 
 void check_inactive_time(uint32_t time) {
-    for (const auto &pr: map_of_flows) {
-        if ((time - pr.second.record.last) > (get_inactive_timer() * (uint32_t) 1000)) {
-            flows_to_export.push_back(pr.second);
-            delete_flow(pr.first);
+    vector<key_flow> to_delete;
+    for (auto &map_of_record: map_of_records) {
+        if ((time - ntohl(map_of_record.second.last)) > (get_inactive_timer() * (uint32_t) 1000)) {
+            records_to_export.push_back(map_of_record.second);
+            to_delete.push_back(map_of_record.first);
         }
     }
+    for (auto &i: to_delete) {
+        delete_flow(i);
+    }
+
 }
 
 void check_active_time(uint32_t time) {
-    for (const auto &pr: map_of_flows) {
-        if ((time - pr.second.record.first) > (get_active_timer() * (uint32_t) 1000)) {
-            flows_to_export.push_back(pr.second);
-            delete_flow(pr.first);
+    vector<key_flow> to_delete;
+    for (const auto &pr: map_of_records) {
+        if ((time - ntohl(pr.second.first)) > (get_active_timer() * (uint32_t) 1000)) {
+            records_to_export.push_back(pr.second);
+            to_delete.push_back(pr.first);
         }
+    }
+    for (auto &i: to_delete) {
+        delete_flow(i);
     }
 }
 
-void export_flows() {
+flow_header create_flow_header(uint32_t time, uint32_t secs, uint32_t nsec) {
+    flow_header header;
+    header.version = htons(5);
+    header.count = htons(1);
+    header.sys_uptime = htonl(time);
+    header.unix_secs = htonl(secs);
+    header.unix_nsecs = htonl(nsec);
+    header.engine_type = 0;
+    header.engine_id = 0;
+    header.sampling_interval = 0;
+    return header;
+}
 
+
+void export_flows(uint32_t time, uint32_t secs, uint32_t nsec) {
+    if (records_to_export.empty()) {
+        return;
+    }
+    flow flow;
+    flow_header header = create_flow_header(time, secs, nsec);
+    int count = 0;
+    int msg_size;
+    list<flow_record>::iterator it;
+    for (it = records_to_export.begin(); it != records_to_export.end(); ++it) {
+        flow.record[count++] = *it;
+        if (count == 30) {
+            header.count = htons(count);
+            flow.header = header;
+            msg_size = int(sizeof(flow_header) + count * sizeof(flow_record));
+            send_to_client(&flow, sizeof(flow));
+            count = 0;
+        }
+    }
+
+    if (count != 0) {
+        header.count = htons(count);
+        flow.header = header;
+        msg_size = int(sizeof(flow_header) + count * sizeof(flow_record));
+        send_to_client(&flow, msg_size);
+    }
+}
+
+void export_rest(uint32_t time, uint32_t secs, uint32_t nsec) {
+    for (const auto &pr: map_of_records) {
+        records_to_export.push_back(pr.second);
+    }
+    export_flows(time, secs, nsec);
 }

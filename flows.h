@@ -51,7 +51,7 @@ typedef struct Flow_Record {
 
 typedef struct Flow {
     flow_header header;
-    flow_record record;
+    flow_record record[30];
 } flow;
 
 tuple <string, string, int, int, uint8_t, uint8_t> create_key(
@@ -68,7 +68,9 @@ bool is_exist_flow(const tuple <string, string, int, int, uint8_t, uint8_t>& key
 
 void delete_flow(const tuple <string, string, int, int, uint8_t, uint8_t>& key);
 
-void export_flows();
+void export_flows(uint32_t time, uint32_t secs, uint32_t nsec);
+
+void export_rest(uint32_t time, uint32_t secs, uint32_t nsec);
 
 void check_inactive_time(uint32_t time);
 
