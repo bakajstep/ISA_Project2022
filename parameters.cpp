@@ -25,34 +25,34 @@ void init() {
 }
 
 
-void read_parameters(int argc, char* argv[]) {
+void read_parameters(int argc, char *argv[]) {
     init();
     int opt;
     string argument;
 
-    while((opt = getopt(argc, argv, ":f:c:a:i:m:")) != -1)
-    {
-        switch(opt)
-        {
+    while ((opt = getopt(argc, argv, ":f:c:a:i:m:")) != -1) {
+        switch (opt) {
             case 'f':
                 file = optarg;
                 break;
             case 'c':
                 argument = optarg;
-                if (argument.find(':') != string::npos){
-                    
+                if (argument.find(':') != string::npos) {
+                    int pos = (int) argument.find(':');
+                    ip_address = argument.substr(0, pos);
+                    port = stoi(argument.substr(pos + 1));
                 } else {
                     ip_address = optarg;
                 }
                 break;
             case 'a':
-                active_timer = atoi(optarg);
+                active_timer = stoi(optarg);
                 break;
             case 'i':
-                inactive_timer = atoi(optarg);
+                inactive_timer = stoi(optarg);
                 break;
             case 'm':
-                number_of_flows = atoi(optarg);
+                number_of_flows = stoi(optarg);
                 break;
             case ':':
                 exit_with_error(Error::E_PARAMETER, "Parameter without value.");

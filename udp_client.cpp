@@ -13,7 +13,7 @@
 
 void send_to_client(flow *buffer, int size) {
     int sock;                            // socket descriptor
-    int msg_size, i;
+    int i;
     struct sockaddr_in server{}; // address structures of the server and the client
     struct hostent *servent;             // network host entry required by gethostbyname()
 
@@ -37,7 +37,7 @@ void send_to_client(flow *buffer, int size) {
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) == -1)
         err(1, "connect() failed");
 
-    i = send(sock, buffer, size, 0);     // send_to_client data to the server
+    i = (int) send(sock, buffer, size, 0);     // send_to_client data to the server
     if (i == -1)                   // check if data was sent correctly
         err(1, "send_to_client() failed");
     else if (i != size)

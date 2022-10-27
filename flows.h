@@ -12,7 +12,7 @@
 
 using namespace std;
 
-typedef tuple <string, string, int, int, uint8_t, uint8_t> key_flow;
+typedef tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> key_flow;
 
 typedef struct Flow_Header {
     uint16_t version;
@@ -36,8 +36,8 @@ typedef struct Flow_Record {
     uint32_t dOctets;
     uint32_t first;
     uint32_t last;
-    uint8_t srcport;
-    uint8_t dstport;
+    uint16_t srcport;
+    uint16_t dstport;
     uint8_t pad1;
     uint8_t tcp_flags;
     uint8_t prot;
@@ -54,19 +54,19 @@ typedef struct Flow {
     flow_record record[30];
 } flow;
 
-tuple <string, string, int, int, uint8_t, uint8_t> create_key(
-        const string& ip_sc, const string& ip_dest, int p_sc, int p_dest, uint8_t protocol, uint8_t tos);
+tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> create_key(
+        const string& ip_sc, const string& ip_dest, uint16_t p_sc, uint16_t p_dest, uint8_t protocol, uint8_t tos);
 
-void update_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key, time_t time, uint8_t tcp_flag,
+void update_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> &key, time_t time, uint8_t tcp_flag,
                  uint32_t dOctets);
 
-void create_flow(const tuple<string, string, int, int, uint8_t, uint8_t> &key, in_addr ip_source, in_addr ip_desc,
-                 uint8_t port_source, uint8_t port_desc, uint8_t protocol, uint8_t tos, uint32_t time, uint8_t tcp_flag,
+void create_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> &key, in_addr ip_source, in_addr ip_desc,
+                 uint16_t port_source, uint16_t port_desc, uint8_t protocol, uint8_t tos, uint32_t time, uint8_t tcp_flag,
                  uint32_t dOctets);
 
-bool is_exist_flow(const tuple <string, string, int, int, uint8_t, uint8_t>& key);
+bool is_exist_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key);
 
-void delete_flow(const tuple <string, string, int, int, uint8_t, uint8_t>& key);
+void delete_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key);
 
 void export_flows(uint32_t time, uint32_t secs, uint32_t nsec);
 
