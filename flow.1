@@ -1,0 +1,43 @@
+.TH FLOW 1
+.SH NAME
+flow \- Collect packets and create flows from it and send to collector
+.SH SYNOPSIS
+.B flow
+[\fB\-f\fR \f <file>\fR]
+[\fB\-c\fR \f <netflow_collector>[:<port>]\fR]
+[\fB\-a\fR \f <active_timer>\fR]
+[\fB\-i\fR \f <inactive_timer>\fR]
+[\fB\-m\fR \f <count>\fR]
+.SH DESCRIPTION
+NetFlow exporter that creates NetFlow records from the captured network data in pcap format and sends them to the collector.
+.SH OPTIONS
+.TP
+.BR \-f\fR
+name of the analyzed file(default STDIN)
+.TP
+.BR \-c\fR
+IP address or hostname of the NetFlow collector optionally also UDP port(default 127.0.0.1:2055)
+.TP
+.BR \-a\fR
+interval in seconds after which active records are exported to the collector(default 60)
+.TP
+.BR \-i\fR
+interval in seconds after which inactive records are exported to the collector(default 10)
+.TP
+.BR \-m\fR
+flow-cache size. When the maximum size is reached, the oldest record in the cache is exported to the collector(default 1024)
+.SH EXIT VALUES
+.TP
+.BR \ 0 \fR
+No error
+.TP
+.BR \ 1\fR
+Error in parsing arguments
+.TP
+.BR \ 2\fR
+Error in pcap file reader
+.TP
+.BR \ 3\fR
+Error with UDP client
+.SH AUTHOR
+Stepan Bakaj 2022

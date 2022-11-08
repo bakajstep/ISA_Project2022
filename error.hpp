@@ -13,7 +13,9 @@ namespace Error
     {
         E_NO_ERR = 0,
         E_PARAMETER = 1,
-        E_PCAP_FILE_READ
+        E_PCAP_FILE_READ = 2,
+        E_UDP_CLIENT = 3
+
     };
 }
 

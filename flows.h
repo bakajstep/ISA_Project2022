@@ -54,25 +54,58 @@ typedef struct Flow {
     flow_record record[30];
 } flow;
 
+/**
+ * Create key to map of records.
+ */
 tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> create_key(
         const string& ip_sc, const string& ip_dest, uint16_t p_sc, uint16_t p_dest, uint8_t protocol, uint8_t tos);
 
+/**
+ * Update record in map.
+ */
 void update_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> &key, time_t time, uint8_t tcp_flag,
                  uint32_t dOctets);
 
+/**
+ * Create record in map.
+ */
 void create_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> &key, in_addr ip_source, in_addr ip_desc,
                  uint16_t port_source, uint16_t port_desc, uint8_t protocol, uint8_t tos, uint32_t time, uint8_t tcp_flag,
                  uint32_t dOctets);
 
+/**
+ * Check if a given key is existing in map.
+ */
 bool is_exist_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key);
 
+/**
+ * Delete record with given key from map.
+ */
 void delete_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key);
 
+/**
+ * Export records from list.
+ */
 void export_flows(uint32_t time, uint32_t secs, uint32_t nsec);
 
+/**
+ * Export rest of the records after pcap file end.
+ */
 void export_rest(uint32_t time, uint32_t secs, uint32_t nsec);
 
+/**
+ * Check if some records needs to be exported due to inactive timer.
+ */
 void check_inactive_time(uint32_t time);
 
+/**
+ * Check if some records needs to be exported due to active timer.
+ */
 void check_active_time(uint32_t time);
+
+
+/**
+ * Add records to export list with given key.
+ */
+void add_flow_to_export(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key);
 #endif //ISA_PROJECT2022_FLOWS_H

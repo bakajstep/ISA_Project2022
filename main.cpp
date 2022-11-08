@@ -64,11 +64,11 @@ int main(int argc, char *argv[]) {
                                      ICMP_DESTINATION_PORT(my_icmp->type, my_icmp->code), my_ip->ip_p,
                                      my_ip->ip_tos);
                     if (is_exist_flow(key)) {
-                        update_flow(key, current_packet_time, 0, header.len);
+                        update_flow(key, current_packet_time, 0, my_ip->ip_len);
                     } else {
                         create_flow(key, my_ip->ip_src, my_ip->ip_dst, 0,
                                     ICMP_DESTINATION_PORT(my_icmp->type, my_icmp->code), my_ip->ip_p, my_ip->ip_tos,
-                                    current_packet_time, 0, header.len);
+                                    current_packet_time, 0, my_ip->ip_len);
                     }
                     export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;
@@ -78,11 +78,14 @@ int main(int argc, char *argv[]) {
                                      ntohs(my_tcp->th_sport), ntohs(my_tcp->th_dport),
                                      my_ip->ip_p, my_ip->ip_tos);
                     if (is_exist_flow(key)) {
-                        update_flow(key, current_packet_time, my_tcp->th_flags, header.len);
+                        update_flow(key, current_packet_time, my_tcp->th_flags, my_ip->ip_len);
                     } else {
                         create_flow(key, my_ip->ip_src, my_ip->ip_dst, ntohs(my_tcp->th_sport),
                                     ntohs(my_tcp->th_dport), my_ip->ip_p, my_ip->ip_tos,
-                                    current_packet_time, my_tcp->th_flags, header.len);
+                                    current_packet_time, my_tcp->th_flags, my_ip->ip_len);
+                    }
+                    if (my_tcp->th_flags & TH_FIN || my_tcp->th_flags & TH_RST) {
+                        add_flow_to_export(key);
                     }
                     export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;
@@ -91,11 +94,11 @@ int main(int argc, char *argv[]) {
                     key = create_key(inet_ntoa(my_ip->ip_src), inet_ntoa(my_ip->ip_dst), ntohs(my_udp->uh_sport),
                                      ntohs(my_udp->uh_dport), my_ip->ip_p, my_ip->ip_tos);
                     if (is_exist_flow(key)) {
-                        update_flow(key, current_packet_time, 0, header.len);
+                        update_flow(key, current_packet_time, 0, my_ip->ip_len);
                     } else {
                         create_flow(key, my_ip->ip_src, my_ip->ip_dst, ntohs(my_udp->uh_sport),
                                     ntohs(my_udp->uh_dport), my_ip->ip_p, my_ip->ip_tos,
-                                    current_packet_time, 0, header.len);
+                                    current_packet_time, 0, my_ip->ip_len);
                     }
                     export_flows(current_packet_time, header.ts.tv_sec, header.ts.tv_usec);
                     break;

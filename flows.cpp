@@ -13,13 +13,13 @@
 
 map<tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>, flow_record> map_of_records; // map of flows
 int current_number_of_flows = 0; // number of flows
+int flow_sequence = 0;
 list<flow_record> records_to_export;
 
 tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t> get_key_flow(flow_record record) {
     return create_key(inet_ntoa(record.srcaddr), inet_ntoa(record.dstaddr),
                       ntohs(record.srcport), ntohs(record.dstport), record.prot, record.tos);
 }
-
 
 flow_record find_oldest_record() {
     flow_record oldest_record;
@@ -46,7 +46,7 @@ void create_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_
     if (current_number_of_flows++ == get_count()) {
         record = find_oldest_record();
         key_flow tmp_key = get_key_flow(record);
-        records_to_export.push_back(record);
+        records_to_export.push_front(record);
         delete_flow(tmp_key);
         current_number_of_flows--;
     }
@@ -57,7 +57,7 @@ void create_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_
     record.input = 0;
     record.output = 0;
     record.dPkts = htonl(1);
-    record.dOctets = htonl(dOctets);
+    record.dOctets = htonl(ntohs(dOctets));
     record.first = htonl(time);
     record.last = htonl(time);
     record.srcport = htons(port_source);
@@ -79,7 +79,7 @@ void update_flow(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_
     flow_record record = map_of_records[key];
     record.last = htonl(time);
     record.dPkts += htonl(1);
-    record.dOctets += htonl(dOctets);
+    record.dOctets += htonl(ntohs(dOctets));
     record.tcp_flags = record.tcp_flags | tcp_flag;
     map_of_records[key] = record;
 }
@@ -99,7 +99,7 @@ void check_inactive_time(uint32_t time) {
     vector<key_flow> to_delete;
     for (auto &map_of_record: map_of_records) {
         if ((time - ntohl(map_of_record.second.last)) > (get_inactive_timer() * (uint32_t) 1000)) {
-            records_to_export.push_back(map_of_record.second);
+            records_to_export.push_front(map_of_record.second);
             to_delete.push_back(map_of_record.first);
         }
     }
@@ -113,7 +113,7 @@ void check_active_time(uint32_t time) {
     vector<key_flow> to_delete;
     for (const auto &pr: map_of_records) {
         if ((time - ntohl(pr.second.first)) > (get_active_timer() * (uint32_t) 1000)) {
-            records_to_export.push_back(pr.second);
+            records_to_export.push_front(pr.second);
             to_delete.push_back(pr.first);
         }
     }
@@ -150,8 +150,10 @@ void export_flows(uint32_t time, uint32_t secs, uint32_t nsec) {
         if (count == 30) {
             header.count = htons(count);
             flow.header = header;
+            flow.header.flow_sequence = htonl(flow_sequence);
             msg_size = int(sizeof(flow_header) + count * sizeof(flow_record));
             send_to_client(&flow, msg_size);
+            flow_sequence += count;
             count = 0;
         }
     }
@@ -159,15 +161,22 @@ void export_flows(uint32_t time, uint32_t secs, uint32_t nsec) {
     if (count != 0) {
         header.count = htons(count);
         flow.header = header;
+        flow.header.flow_sequence = htonl(flow_sequence);
         msg_size = int(sizeof(flow_header) + count * sizeof(flow_record));
         send_to_client(&flow, msg_size);
+        flow_sequence += count;
     }
     records_to_export.clear();
 }
 
 void export_rest(uint32_t time, uint32_t secs, uint32_t nsec) {
     for (const auto &pr: map_of_records) {
-        records_to_export.push_back(pr.second);
+        records_to_export.push_front(pr.second);
     }
     export_flows(time, secs, nsec);
+}
+
+void add_flow_to_export(const tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>& key){
+    records_to_export.push_front(map_of_records[key]);
+    delete_flow(key);
 }
