@@ -11,7 +11,7 @@ UDP_CLIENT=udp_client
 .PHONY: all clean
 
 all:
-	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(PARAMETERS).cpp $(FLOW).cpp $(UDP_CLIENT).cpp $(CFLAGS) -lpcap -o main
+	$(CC) -std=$(STANDARD) $(MAIN).cpp $(ERROR).cpp $(PARAMETERS).cpp $(FLOW).cpp $(UDP_CLIENT).cpp $(CFLAGS) -lpcap -o flow
 
 clean:
 	rm -f *.o main

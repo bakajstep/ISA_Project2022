@@ -2,7 +2,6 @@
 // Created by sbakaj on 10/9/22.
 //
 
-#include <cstdlib>
 #include <unistd.h>
 #include "parameters.h"
 #include "error.hpp"
@@ -46,13 +45,25 @@ void read_parameters(int argc, char *argv[]) {
                 }
                 break;
             case 'a':
-                active_timer = stoi(optarg);
+                if (stoi(optarg) > 0) {
+                    active_timer = stoi(optarg);
+                } else {
+                    exit_with_error(Error::E_PARAMETER, "Parameter active_timer is not set right");
+                }
                 break;
             case 'i':
-                inactive_timer = stoi(optarg);
+                if (stoi(optarg) > 0) {
+                    inactive_timer = stoi(optarg);
+                } else {
+                    exit_with_error(Error::E_PARAMETER, "Parameter inactive_timer is not set right");
+                }
                 break;
             case 'm':
-                number_of_flows = stoi(optarg);
+                if (stoi(optarg) > 0) {
+                    number_of_flows = stoi(optarg);
+                } else {
+                    exit_with_error(Error::E_PARAMETER, "Parameter count is not set right");
+                }
                 break;
             case ':':
                 exit_with_error(Error::E_PARAMETER, "Parameter without value.");

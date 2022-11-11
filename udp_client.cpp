@@ -1,15 +1,15 @@
 //
 // Created by sbakaj on 10/20/22.
 //
-
 #include "udp_client.h"
 #include<cstring>
 #include<sys/socket.h>
-#include<netinet/in.h>
 #include<unistd.h>
 #include<netdb.h>
 #include"parameters.h"
 #include "error.hpp"
+#define __FAVOR_BSD
+#include<netinet/in.h>
 
 void send_to_client(flow *buffer, int size) {
     int sock;                          // socket descriptor

@@ -6,16 +6,14 @@
 #include "error.hpp"
 #include "flows.h"
 #include <pcap/pcap.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
+#define __FAVOR_BSD
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <netinet/ip.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
-#include <netinet/if_ether.h>
-#include <sys/socket.h>
-#include <netinet/ether.h>
-#include <cstring>
 
 #define PCAP_ERRBUF_SIZE 256
 #define SIZE_ETHERNET 14

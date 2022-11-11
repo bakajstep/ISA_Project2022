@@ -8,7 +8,9 @@
 #include <tuple>
 #include <string>
 #include <map>
+#define __FAVOR_BSD
 #include <netinet/ip.h>
+
 
 using namespace std;
 

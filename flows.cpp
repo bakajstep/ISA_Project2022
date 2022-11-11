@@ -2,13 +2,14 @@
 // Created by sbakaj on 10/13/22.
 //
 
-#include <arpa/inet.h>
 #include <cstdint>
 #include <list>
 #include <vector>
 #include "flows.h"
 #include "parameters.h"
 #include "udp_client.h"
+#define __FAVOR_BSD
+#include <arpa/inet.h>
 
 
 map<tuple<string, string, uint16_t, uint16_t, uint8_t, uint8_t>, flow_record> map_of_records; // map of flows
