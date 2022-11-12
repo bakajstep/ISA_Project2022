@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #define __FAVOR_BSD
+#include "netinet/in.h"
 #include <netinet/ip.h>
 
 
@@ -29,8 +30,8 @@ typedef struct Flow_Header {
 } flow_header;
 
 typedef struct Flow_Record {
-    struct in_addr srcaddr;
-    struct in_addr dstaddr;
+    in_addr srcaddr;
+    in_addr dstaddr;
     uint32_t nexthop;
     uint16_t input;
     uint16_t output;
